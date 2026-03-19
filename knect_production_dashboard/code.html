@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#6366F1",
+                        secondary: "#8B5CF6",
+                        background: "#0a0c14",
+                        surface: "#131b2e",
+                        "surface-container": "#1e293b",
+                        "on-surface": "#f1f5f9",
+                        "on-surface-variant": "#94a3b8",
+                        outline: "#334155",
+                        error: "#f43f5e",
+                        warning: "#f59e0b",
+                        success: "#10b981",
+                    },
+                    fontFamily: {
+                        sans: ["Inter", "sans-serif"],
+                    },
+                    borderRadius: {
+                        'none': '0',
+                        'sm': '0.125rem',
+                        DEFAULT: '0.5rem',
+                        'md': '0.75rem',
+                        'lg': '1rem',
+                        'xl': '1.5rem',
+                        '2xl': '2rem',
+                        '3xl': '2.5rem',
+                        'full': '9999px',
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body { 
+            font-family: 'Inter', sans-serif; 
+            -webkit-font-smoothing: antialiased; 
+            background-color: #0a0c14;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .glass-card {
+            background: rgba(19, 27, 46, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .glass-card-bright {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        [x-cloak] { display: none !important; }
+        @keyframes slideUpFadeIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-in { animation: slideUpFadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        
+        /* Custom Checkbox */
+        .custom-checkbox:checked + span {
+            background-color: #6366F1;
+            border-color: #6366F1;
+        }
+    </style>
+<script defer="" src="./app.js"></script>
+<script defer="" src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body class="bg-background text-on-surface min-h-screen pb-32 md:pb-12" x-data="reminderApp()">
+<!-- TopAppBar Component (from COMPONENTS_26) -->
+<header class="fixed top-0 w-full z-50 bg-[#131b2e]/60 backdrop-blur-xl border-b border-[#464554]/10 shadow-[0_4px_20px_rgba(6,14,32,0.5)]">
+<div class="flex justify-between items-center px-6 h-16 w-full">
+<div class="flex items-center gap-4">
+<button class="p-2 -ml-2 rounded-xl hover:bg-[#31394d] transition-colors active:scale-95 duration-200 text-[#bdc2ff]">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+<h1 class="text-2xl font-bold bg-gradient-to-br from-[#bdc2ff] to-[#7c87f3] bg-clip-text text-transparent font-['Inter'] tracking-tight">
+                Knect
+            </h1>
+</div>
+<div class="flex items-center gap-1">
+<button class="p-2 rounded-xl hover:bg-[#31394d] transition-colors active:scale-95 duration-200 text-[#c7c4d7]">
+<span class="material-symbols-outlined" data-icon="search">search</span>
+</button>
+<button class="p-2 rounded-xl hover:bg-[#31394d] transition-colors active:scale-95 duration-200 text-[#c7c4d7]">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+</div>
+</div>
+</header>
+<main class="pt-24 px-6 max-w-7xl mx-auto">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
+<!-- Sidebar: User & Analytics -->
+<aside class="lg:col-span-4 lg:sticky lg:top-24 lg:h-fit space-y-8">
+<section>
+<h2 class="text-3xl font-black tracking-tight text-white mb-2 leading-tight">Good morning, User</h2>
+<p class="text-on-surface-variant font-medium">You have <span class="text-primary font-bold" x-text="reminders.filter(r =&gt; !r.completed).length"></span> pending priorities today.</p>
+</section>
+<!-- Search Area -->
+<div class="relative group">
+<div class="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-on-surface-variant text-xl group-focus-within:text-primary transition-colors" data-icon="search">search</span>
+</div>
+<input class="w-full pl-12 pr-4 py-4 bg-surface rounded-2xl border border-outline/20 focus:border-primary/50 focus:ring-0 shadow-xl text-on-surface placeholder-on-surface-variant/40 transition-all font-medium" placeholder="Quick find task..." type="text" x-model="searchQuery"/>
+</div>
+<!-- Integrated Analytics Section -->
+<section class="grid grid-cols-1 gap-4">
+<div class="bg-gradient-to-br from-indigo-600 to-violet-700 p-6 rounded-3xl shadow-2xl shadow-indigo-900/40 relative overflow-hidden group">
+<div class="relative z-10">
+<div class="flex justify-between items-start mb-4">
+<span class="text-white/70 text-[11px] font-bold uppercase tracking-[0.15em]">Total Reminders</span>
+<span class="bg-white/20 p-2 rounded-xl backdrop-blur-md">
+<span class="material-symbols-outlined text-white text-xl" data-icon="bolt">bolt</span>
+</span>
+</div>
+<div class="text-5xl font-black text-white" x-text="reminders.length">24</div>
+<div class="mt-4 flex items-center gap-2 text-white/80 text-xs font-semibold">
+<span class="material-symbols-outlined text-sm" data-icon="trending_up">trending_up</span>
+<span>+12% focus efficiency</span>
+</div>
+</div>
+<div class="absolute -right-6 -bottom-6 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-[160px]" data-icon="analytics" style="font-variation-settings: 'FILL' 1;">analytics</span>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="glass-card p-5 rounded-2xl">
+<span class="text-on-surface-variant text-[10px] font-bold uppercase tracking-wider mb-2 block">Done</span>
+<div class="text-2xl font-bold text-success" x-text="reminders.filter(r =&gt; r.completed).length">18</div>
+<div class="w-full bg-white/5 h-1.5 rounded-full mt-3 overflow-hidden">
+<div :style="`width: ${ (reminders.filter(r =&gt; r.completed).length / (reminders.length || 1)) * 100 }%`" class="bg-success h-full rounded-full transition-all duration-1000"></div>
+</div>
+</div>
+<div class="glass-card p-5 rounded-2xl">
+<span class="text-on-surface-variant text-[10px] font-bold uppercase tracking-wider mb-2 block">Pending</span>
+<div class="text-2xl font-bold text-primary" x-text="reminders.filter(r =&gt; !r.completed).length">06</div>
+<div class="w-full bg-white/5 h-1.5 rounded-full mt-3 overflow-hidden">
+<div :style="`width: ${ (reminders.filter(r =&gt; !r.completed).length / (reminders.length || 1)) * 100 }%`" class="bg-primary h-full rounded-full transition-all duration-1000"></div>
+</div>
+</div>
+</div>
+</section>
+</aside>
+<!-- Main Content: Reminders -->
+<div class="lg:col-span-8">
+<!-- Filter Bar -->
+<div class="flex gap-2 mb-8 overflow-x-auto no-scrollbar py-1">
+<button :class="filter === 'all' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-surface text-on-surface-variant hover:bg-surface-container border border-outline/10'" @click="filter = 'all'" class="px-6 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap">Today</button>
+<button :class="filter === 'upcoming' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-surface text-on-surface-variant hover:bg-surface-container border border-outline/10'" @click="filter = 'upcoming'" class="px-6 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap">Upcoming</button>
+<button :class="filter === 'completed' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-surface text-on-surface-variant hover:bg-surface-container border border-outline/10'" @click="filter = 'completed'" class="px-6 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap">Completed</button>
+</div>
+<section class="space-y-4">
+<div class="flex justify-between items-center mb-6 px-1">
+<h3 class="text-xl font-bold text-white tracking-tight" x-text="filterTitle">Today's Agenda</h3>
+<button class="text-primary text-sm font-bold hover:text-secondary transition-colors px-3 py-1 rounded-lg hover:bg-primary/5">View History</button>
+</div>
+<div class="grid grid-cols-1 gap-4">
+<template :key="reminder.id" x-for="reminder in filteredReminders">
+<div class="glass-card-bright p-5 rounded-2xl flex items-start gap-4 hover:border-primary/20 transition-all duration-300 group relative">
+<div class="mt-1">
+<label class="relative flex items-center cursor-pointer">
+<input :checked="reminder.completed" @change="toggleComplete(reminder.id)" class="w-6 h-6 rounded-lg border-2 border-outline/40 bg-transparent text-primary focus:ring-0 focus:ring-offset-0 transition-all cursor-pointer peer custom-checkbox" type="checkbox"/>
+<span class="absolute inset-0 flex items-center justify-center opacity-0 peer-checked:opacity-100 transition-opacity text-white pointer-events-none">
+<span class="material-symbols-outlined text-base font-bold" data-icon="check">check</span>
+</span>
+</label>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start gap-3">
+<div>
+<h4 :class="reminder.completed ? 'line-through opacity-40 grayscale' : 'text-white'" class="font-bold text-lg leading-snug transition-all" x-text="reminder.title">Task Title</h4>
+<div class="flex items-center gap-2 mt-1.5">
+<span class="material-symbols-outlined text-sm text-on-surface-variant" data-icon="schedule">schedule</span>
+<span class="text-xs font-semibold text-on-surface-variant" x-text="reminder.time">10:30 AM</span>
+</div>
+</div>
+<span :class="{
+                                        'bg-rose-500/10 text-rose-500 border-rose-500/20': reminder.priority === 'High',
+                                        'bg-amber-500/10 text-amber-500 border-amber-500/20': reminder.priority === 'Medium',
+                                        'bg-emerald-500/10 text-emerald-500 border-emerald-500/20': reminder.priority === 'Low'
+                                    }" class="text-[9px] font-black px-2.5 py-1 rounded-md uppercase tracking-[0.1em] border shrink-0" x-text="reminder.priority">Priority</span>
+</div>
+<div class="flex gap-4 mt-6 pt-4 border-t border-white/5 opacity-0 group-hover:opacity-100 transition-all transform translate-y-1 group-hover:translate-y-0">
+<button @click="openEditModal(reminder)" class="text-on-surface-variant hover:text-white transition-colors flex items-center gap-2 text-xs font-bold">
+<span class="material-symbols-outlined text-lg" data-icon="edit_note">edit_note</span>
+                                        Edit
+                                    </button>
+<button class="text-on-surface-variant hover:text-primary transition-colors flex items-center gap-2 text-xs font-bold">
+<span class="material-symbols-outlined text-lg" data-icon="notifications_paused">notifications_paused</span>
+                                        Snooze
+                                    </button>
+<button @click="deleteReminder(reminder.id)" class="text-on-surface-variant hover:text-error transition-colors flex items-center gap-2 text-xs font-bold ml-auto">
+<span class="material-symbols-outlined text-lg" data-icon="delete_sweep">delete_sweep</span>
+                                        Delete
+                                    </button>
+</div>
+</div>
+</div>
+</template>
+</div>
+<!-- Empty State -->
+<div class="flex flex-col items-center justify-center py-24 opacity-30 animate-in" x-show="filteredReminders.length === 0">
+<div class="bg-surface p-8 rounded-full mb-6">
+<span class="material-symbols-outlined text-7xl text-on-surface-variant" data-icon="verified">verified</span>
+</div>
+<p class="text-xl font-bold">Everything looks clear</p>
+<p class="text-sm font-medium mt-1">Enjoy your productivity peak</p>
+</div>
+</section>
+</div>
+</div>
+</main>
+<!-- Floating Action Button -->
+<button @click="openAddModal" class="fixed bottom-28 right-6 w-16 h-16 bg-gradient-to-br from-indigo-500 to-violet-600 text-white rounded-2xl shadow-2xl shadow-indigo-900/50 flex items-center justify-center active:scale-90 hover:scale-105 transition-all duration-300 z-[60] group border border-white/10">
+<span class="material-symbols-outlined text-3xl transition-transform group-hover:rotate-90" data-icon="add">add</span>
+</button>
+<!-- BottomNavBar Component (from COMPONENTS_26) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-[#131b2e]/80 backdrop-blur-2xl border-t border-[#464554]/10 shadow-[0_-12px_40px_rgba(189,194,255,0.08)]">
+<a class="flex flex-col items-center justify-center bg-[#6f00be]/20 text-[#bdc2ff] rounded-xl px-4 py-1 active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="grid_view">grid_view</span>
+<span class="font-['Inter'] text-[11px] font-semibold uppercase tracking-wider mt-0.5">Dashboard</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#c7c4d7]/60 hover:text-[#bdc2ff] transition-all active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="calendar_today">calendar_today</span>
+<span class="font-['Inter'] text-[11px] font-semibold uppercase tracking-wider mt-0.5">Calendar</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#c7c4d7]/60 hover:text-[#bdc2ff] transition-all active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span class="font-['Inter'] text-[11px] font-semibold uppercase tracking-wider mt-0.5">Analytics</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#c7c4d7]/60 hover:text-[#bdc2ff] transition-all active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-['Inter'] text-[11px] font-semibold uppercase tracking-wider mt-0.5">Profile</span>
+</a>
+</nav>
+<!-- Modal for Add/Edit -->
+<div class="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/60 backdrop-blur-md" x-cloak="" x-show="modalOpen" x-transition:enter="transition ease-out duration-300" x-transition:enter-end="opacity-100 translate-y-0" x-transition:enter-start="opacity-0 translate-y-8" x-transition:leave="transition ease-in duration-200" x-transition:leave-end="opacity-0 translate-y-8" x-transition:leave-start="opacity-100 translate-y-0">
+<div @click.away="modalOpen = false" class="bg-surface w-full max-w-lg rounded-[2.5rem] p-8 border border-white/5 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)]">
+<div class="flex justify-between items-center mb-10">
+<h3 class="text-2xl font-black text-white" x-text="isEditing ? 'Update Task' : 'Define New Goal'">New Reminder</h3>
+<button @click="modalOpen = false" class="text-on-surface-variant hover:text-white transition-colors">
+<span class="material-symbols-outlined text-2xl" data-icon="close">close</span>
+</button>
+</div>
+<div class="space-y-8">
+<div>
+<label class="block text-[10px] font-black text-on-surface-variant mb-3 uppercase tracking-[0.2em]">Task Definition</label>
+<input class="w-full bg-background border border-outline/20 rounded-2xl p-5 focus:border-primary focus:ring-4 focus:ring-primary/10 shadow-inner text-lg text-white font-medium" placeholder="What needs to be done?" type="text" x-model="form.title"/>
+</div>
+<div class="grid grid-cols-2 gap-6">
+<div>
+<label class="block text-[10px] font-black text-on-surface-variant mb-3 uppercase tracking-[0.2em]">Execution Time</label>
+<div class="relative">
+<input class="w-full bg-background border border-outline/20 rounded-2xl p-5 focus:border-primary focus:ring-4 focus:ring-primary/10 text-white font-medium" type="time" x-model="form.time"/>
+</div>
+</div>
+<div>
+<label class="block text-[10px] font-black text-on-surface-variant mb-3 uppercase tracking-[0.2em]">Priority Tier</label>
+<select class="w-full bg-background border border-outline/20 rounded-2xl p-5 focus:border-primary focus:ring-4 focus:ring-primary/10 text-white font-medium appearance-none cursor-pointer" x-model="form.priority">
+<option>Low</option>
+<option>Medium</option>
+<option>High</option>
+</select>
+</div>
+</div>
+</div>
+<div class="flex gap-4 mt-12">
+<button @click="modalOpen = false" class="flex-1 py-5 bg-white/5 rounded-2xl font-bold text-on-surface-variant hover:bg-white/10 hover:text-white transition-all active:scale-95">Discard</button>
+<button :disabled="isSaving" @click="saveReminder" class="flex-[1.5] py-5 bg-gradient-to-br from-indigo-500 to-violet-600 text-white rounded-2xl font-bold shadow-2xl shadow-indigo-900/40 hover:shadow-indigo-500/60 transition-all active:scale-95 disabled:opacity-50">
+<span x-show="!isSaving" x-text="isEditing ? 'Confirm Update' : 'Initialize Task'"></span>
+<span class="flex items-center justify-center" x-show="isSaving">
+<span class="animate-spin h-5 w-5 border-2 border-white/30 border-t-white rounded-full"></span>
+</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Toast Feedback System -->
+<div class="fixed bottom-28 left-1/2 -translate-x-1/2 z-[100] flex flex-col gap-3 pointer-events-none w-[90%] sm:w-auto">
+<template :key="toast.id" x-for="toast in toasts">
+<div class="glass-card text-on-surface px-8 py-4 rounded-2xl shadow-2xl text-sm font-bold flex items-center gap-4 border border-primary/20" x-transition:enter="transition ease-out duration-300" x-transition:enter-end="opacity-100 translate-y-0" x-transition:enter-start="opacity-0 translate-y-8" x-transition:leave="transition ease-in duration-200" x-transition:leave-end="opacity-0 scale-90" x-transition:leave-start="opacity-100 scale-100">
+<span class="material-symbols-outlined text-primary" data-icon="auto_awesome">auto_awesome</span>
+<span x-text="toast.message"></span>
+</div>
+</template>
+</div>
+</body></html>

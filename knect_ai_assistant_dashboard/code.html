@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Knect – Production AI Reminders</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script defer="" src="https://unpkg.com/alpinejs"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "background": "#0a0c1a",
+                        "primary": "#6366F1",
+                        "secondary": "#a855f7",
+                        "tertiary": "#ec4899",
+                        "surface": "#131b2e",
+                        "surface-variant": "#1e293b",
+                        "on-surface": "#f8fafc",
+                        "on-surface-variant": "#94a3b8",
+                        "outline": "#334155",
+                        "accent-blue": "#bdc2ff"
+                    },
+                    fontFamily: {
+                        "sans": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: { 
+                        "DEFAULT": "0.5rem", 
+                        "lg": "0.75rem", 
+                        "xl": "1rem", 
+                        "2xl": "1.5rem", 
+                        "3xl": "2rem", 
+                        "full": "9999px" 
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; background-color: #0a0c1a; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .glass-panel { background: rgba(19, 27, 46, 0.6); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        .glow-premium { box-shadow: 0 0 40px -10px rgba(99, 102, 241, 0.15); }
+        .glow-work { box-shadow: 0 10px 30px -10px rgba(99, 102, 241, 0.1); }
+        .glow-health { box-shadow: 0 10px 30px -10px rgba(236, 72, 153, 0.1); }
+        .glow-study { box-shadow: 0 10px 30px -10px rgba(168, 85, 247, 0.1); }
+        [x-cloak] { display: none !important; }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-in { animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        
+        .shimmer {
+            background: linear-gradient(90deg, transparent 25%, rgba(189, 194, 255, 0.05) 50%, transparent 75%);
+            background-size: 200% 100%;
+            animation: shimmer 2s infinite;
+        }
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(189, 194, 255, 0.1); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(189, 194, 255, 0.2); }
+    </style>
+</head>
+<body class="bg-background text-on-surface selection:bg-primary/30 min-h-screen" x-cloak="" x-data="reminderApp()">
+<!-- Top Navigation (Based on TopAppBar Component) -->
+<header class="fixed top-0 w-full z-50 bg-[#131b2e]/60 backdrop-blur-xl border-b border-[#464554]/10 shadow-[0_4px_20px_rgba(6,14,32,0.5)] h-16 flex items-center">
+<div class="container mx-auto px-6 flex justify-between items-center">
+<div @click="view = 'tasks'" class="flex items-center gap-3 cursor-pointer group">
+<div class="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white shadow-lg transition-transform group-hover:scale-105">
+<span class="material-symbols-outlined !text-xl" data-icon="all_inclusive">all_inclusive</span>
+</div>
+<h1 class="text-xl font-bold bg-gradient-to-br from-[#bdc2ff] to-[#7c87f3] bg-clip-text text-transparent tracking-tight">Knect</h1>
+</div>
+<div class="flex items-center gap-4">
+<button @click="view = 'search'" class="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-[#31394d] text-accent-blue/70 transition-all active:scale-95 duration-200">
+<span class="material-symbols-outlined" data-icon="search">search</span>
+</button>
+<div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-primary to-secondary p-[1px] shadow-md">
+<img alt="Profile" class="w-full h-full rounded-[10px] bg-surface object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCzr1v-P89h5VpQrAGcXTUi6GqGL0PYEyAPSNv0HZH8u8uYqDG4yKPgcVeSD_mMsIBB_SouPHBZvsK7yPCfu9lxqUDO3ShKsUgUaHIfWmlhDRDukbHb1auvUN3TX8QcUj20RO28ukzEgROnJaZYeN2QCAPOhU8Z4Vv2fRqiBwMmB60Zd11HPs8bFGAEVkeG36XhFSuGf4yzum8900qEAdye30hSjaDCDxl9Oj1p15Jsyf1YQkhusjb52o3JBkILG9_ykbPFN1FX4jxA"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Overlay Views (Modals) -->
+<div @click.self="view = 'tasks'" class="fixed inset-0 z-[60] bg-slate-900/60 backdrop-blur-xl p-4 flex items-center justify-center" x-show="view !== 'tasks' &amp;&amp; view !== 'focus'" x-transition:enter="transition ease-out duration-300" x-transition:enter-end="opacity-100" x-transition:enter-start="opacity-0" x-transition:leave="transition ease-in duration-200" x-transition:leave-end="opacity-0" x-transition:leave-start="opacity-100">
+<div class="bg-surface border border-white/10 rounded-3xl p-8 w-full max-w-lg shadow-2xl relative animate-in overflow-hidden">
+<button @click="view = 'tasks'" class="absolute top-5 right-5 w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/5 text-on-surface-variant transition-colors">
+<span class="material-symbols-outlined">close</span>
+</button>
+<template x-if="view === 'search'">
+<div class="space-y-6">
+<h2 class="text-2xl font-black flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">search_spark</span> Search Intelligence
+                </h2>
+<div class="relative">
+<input autofocus="" class="w-full p-4 pl-12 rounded-2xl bg-surface-variant/50 border border-white/5 focus:border-primary/50 focus:ring-0 text-on-surface" placeholder="Scan records..." type="text" x-model="searchQuery"/>
+<span class="material-symbols-outlined absolute left-4 top-4 text-on-surface-variant">search</span>
+</div>
+<div class="space-y-2 max-h-[40vh] overflow-y-auto pr-2 custom-scrollbar">
+<template :key="item.id" x-for="item in filteredTasks">
+<div @click="view = 'tasks'" class="p-4 rounded-2xl hover:bg-surface-variant/40 transition-all cursor-pointer flex justify-between items-center border border-transparent hover:border-white/5">
+<div class="flex flex-col">
+<span class="font-bold text-on-surface" x-text="item.title"></span>
+<span class="text-[11px] font-medium text-on-surface-variant" x-text="item.time"></span>
+</div>
+<span :class="getCategoryClasses(item.category)" class="text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-lg" x-text="item.category"></span>
+</div>
+</template>
+</div>
+</div>
+</template>
+</div>
+</div>
+<main class="pt-24 pb-32 px-6 max-w-7xl mx-auto space-y-12" x-show="view === 'tasks'">
+<!-- Welcome Section (AI Intelligence) -->
+<section class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+<div class="lg:col-span-8 relative group">
+<div class="absolute -inset-0.5 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-3xl blur opacity-30"></div>
+<div class="relative glass-panel rounded-3xl p-8 sm:p-10 flex flex-col sm:flex-row items-center gap-10">
+<div class="space-y-6 flex-1 text-center sm:text-left">
+<div class="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 rounded-full border border-primary/20">
+<span class="material-symbols-outlined text-primary !text-sm" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+<span class="text-primary font-bold text-[10px] tracking-widest uppercase">System Core</span>
+</div>
+<h2 class="text-4xl sm:text-5xl font-black tracking-tighter text-on-surface leading-[1.1]">Good Morning,<br/> Kunj.</h2>
+<p class="text-on-surface-variant text-lg leading-relaxed max-w-lg">
+<template x-if="!loadingAI">
+<span x-transition.opacity="">
+                                Analysis suggests focusing on <span class="text-accent-blue font-bold" x-text="tasks.length &gt; 0 ? tasks[0].title : 'restoration'"></span> during your next flow peak.
+                            </span>
+</template>
+<template x-if="loadingAI">
+<span class="block w-full h-7 shimmer rounded-lg mt-2"></span>
+</template>
+</p>
+</div>
+<div class="bg-surface-variant/30 p-8 rounded-3xl border border-white/5 flex flex-col items-center text-center space-y-4 min-w-[200px]">
+<span class="text-on-surface-variant font-bold text-[10px] uppercase tracking-[0.2em]">Efficiency</span>
+<div class="relative w-24 h-24 flex items-center justify-center">
+<svg class="w-full h-full transform -rotate-90">
+<circle class="text-white/5" cx="48" cy="48" fill="transparent" r="42" stroke="currentColor" stroke-width="6"></circle>
+<circle :stroke-dasharray="264" :stroke-dashoffset="264 - (264 * efficiencyScore / 100)" class="text-primary transition-all duration-1000 ease-out" cx="48" cy="48" fill="transparent" r="42" stroke="currentColor" stroke-linecap="round" stroke-width="6"></circle>
+</svg>
+<span class="absolute text-2xl font-black text-on-surface tracking-tighter" x-text="efficiencyScore + '%'"></span>
+</div>
+<span class="text-[10px] text-accent-blue font-bold uppercase tracking-widest">Optimal Range</span>
+</div>
+</div>
+</div>
+<!-- Bio-Metric Side Card -->
+<div class="lg:col-span-4 h-full">
+<div class="glass-panel p-8 rounded-3xl h-full flex flex-col justify-between space-y-8">
+<div class="flex items-center justify-between">
+<h3 class="font-bold text-on-surface-variant uppercase text-[10px] tracking-[0.2em]">Biometric Sync</h3>
+<span class="material-symbols-outlined text-tertiary animate-pulse" data-icon="favorite" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</div>
+<div class="space-y-6">
+<div class="flex items-end justify-between">
+<div class="space-y-1">
+<p class="text-4xl font-black text-on-surface">78 <span class="text-sm font-medium text-on-surface-variant tracking-normal">BPM</span></p>
+<p class="text-[10px] font-bold text-tertiary uppercase tracking-widest">Resting Active</p>
+</div>
+<div class="flex gap-1.5 items-end h-12">
+<div class="w-1.5 h-6 bg-white/5 rounded-full"></div>
+<div class="w-1.5 h-10 bg-white/5 rounded-full"></div>
+<div class="w-1.5 h-8 bg-tertiary/20 rounded-full"></div>
+<div class="w-1.5 h-12 bg-tertiary rounded-full"></div>
+</div>
+</div>
+<button class="w-full py-3.5 bg-tertiary/10 hover:bg-tertiary/20 text-tertiary text-[10px] font-black rounded-xl transition-all uppercase tracking-[0.15em]">System Diagnostics</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Main Dashboard -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+<!-- Left: AI Suggestions -->
+<aside class="lg:col-span-4 space-y-8 order-2 lg:order-1">
+<div class="flex items-center justify-between px-2">
+<h3 class="text-lg font-black tracking-tight text-on-surface flex items-center gap-2">
+                    AI Habits <span class="material-symbols-outlined text-primary text-sm" data-icon="bolt">bolt</span>
+</h3>
+</div>
+<div class="space-y-4">
+<template :key="index" x-for="(sug, index) in suggestions">
+<div :class="sug.borderClass" @click="acceptSuggestion(index)" class="bg-surface/40 backdrop-blur-md p-5 rounded-2xl border border-white/5 hover:bg-surface-variant/40 transition-all duration-300 group cursor-pointer shadow-sm hover:translate-x-1 active:scale-[0.98]">
+<div class="flex items-center gap-5">
+<div :class="sug.iconBg" class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0">
+<span :data-icon="sug.icon" class="material-symbols-outlined !text-xl" x-text="sug.icon"></span>
+</div>
+<div class="space-y-0.5 overflow-hidden">
+<h4 class="font-bold text-sm text-on-surface truncate" x-text="sug.title"></h4>
+<p class="text-[11px] text-on-surface-variant line-clamp-1" x-text="sug.desc"></p>
+</div>
+<div class="ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-primary">add_circle</span>
+</div>
+</div>
+</div>
+</template>
+<div class="text-center py-12 px-6 border border-dashed border-white/10 rounded-3xl text-on-surface-variant italic text-xs" x-show="suggestions.length === 0">
+<span class="material-symbols-outlined block text-2xl mb-2 opacity-20">verified</span>
+                    Neural patterns optimized
+                </div>
+</div>
+<!-- Stats Module -->
+<div class="bg-gradient-to-b from-surface to-background border border-white/5 p-8 rounded-3xl space-y-6 glow-premium">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined !text-lg" data-icon="monitoring">monitoring</span>
+</div>
+<span class="text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant">Cognitive Load</span>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between items-end">
+<p class="text-4xl font-black text-on-surface tracking-tighter" x-text="efficiencyScore + '%'"></p>
+<div class="flex gap-1.5 items-end h-12">
+<div class="w-2 h-4 bg-white/5 rounded-full"></div>
+<div class="w-2 h-8 bg-white/5 rounded-full"></div>
+<div :style="`height: ${efficiencyScore / 2}px` " class="w-2 bg-primary rounded-full transition-all duration-1000 ease-out"></div>
+<div class="w-2 h-6 bg-primary/30 rounded-full"></div>
+</div>
+</div>
+<p class="text-[10px] font-medium text-on-surface-variant/60 uppercase tracking-widest">Performance Matrix</p>
+</div>
+</div>
+</aside>
+<!-- Right: Tasks -->
+<section class="lg:col-span-8 space-y-8 order-1 lg:order-2">
+<div class="flex items-center justify-between px-2">
+<div class="flex items-center gap-4">
+<h3 class="text-lg font-black tracking-tight text-on-surface">Active Pipeline</h3>
+<span class="px-2.5 py-0.5 bg-primary/20 text-accent-blue text-[10px] font-black rounded-full border border-primary/20" x-text="tasks.length"></span>
+</div>
+<button @click="tasks = []" class="text-[10px] font-black text-primary hover:text-accent-blue uppercase tracking-widest transition-colors">Flush Queue</button>
+</div>
+<div class="space-y-4">
+<template :key="task.id" x-for="(task, index) in tasks">
+<div :class="task.glowClass" class="bg-surface/60 border border-white/5 p-6 rounded-3xl flex items-center justify-between group transition-all duration-300 hover:bg-surface-variant/40 hover:scale-[1.01] animate-in">
+<div class="flex items-center gap-6 flex-1 min-w-0">
+<div :class="getCategoryIconBg(task.category)" class="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-inner">
+<span :data-icon="getCategoryIcon(task.category)" class="material-symbols-outlined !text-2xl" style="font-variation-settings: 'FILL' 1;" x-text="getCategoryIcon(task.category)"></span>
+</div>
+<div class="space-y-1.5 flex-1 min-w-0">
+<div class="flex flex-wrap items-center gap-3">
+<span :class="getCategoryClasses(task.category)" class="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md" x-text="task.category"></span>
+<h4 class="font-bold text-base text-on-surface truncate tracking-tight" x-text="task.title"></h4>
+</div>
+<div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-on-surface-variant font-medium">
+<span class="flex items-center gap-1.5"><span class="material-symbols-outlined !text-sm opacity-50">schedule</span><span x-text="task.time"></span></span>
+<span class="text-primary/70 flex items-center gap-1.5" x-show="task.aiNote">
+<span class="material-symbols-outlined !text-[14px]" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+<span class="truncate italic opacity-80" x-text="task.aiNote"></span>
+</span>
+</div>
+</div>
+</div>
+<button @click="completeTask(index)" class="w-10 h-10 rounded-xl border border-white/10 flex items-center justify-center text-on-surface-variant hover:text-primary hover:border-primary/50 hover:bg-primary/5 transition-all active:scale-90 shrink-0 ml-4">
+<span class="material-symbols-outlined !text-2xl">check</span>
+</button>
+</div>
+</template>
+<div class="py-20 flex flex-col items-center justify-center space-y-4 opacity-30" x-show="tasks.length === 0">
+<span class="material-symbols-outlined !text-5xl">cloud_done</span>
+<p class="font-black text-[10px] uppercase tracking-[0.2em]">Queue Neutralized</p>
+</div>
+<!-- Input Area (Premium Redesign) -->
+<div class="relative mt-8">
+<div class="bg-surface/80 border border-primary/20 p-2 rounded-3xl shadow-2xl glow-premium" x-show="isCreating">
+<div class="flex flex-col sm:flex-row items-center">
+<input @keyup.enter="addTask()" autofocus="" class="flex-1 w-full bg-transparent border-none rounded-2xl px-6 py-4 text-lg font-bold placeholder:text-white/10 focus:ring-0 text-on-surface" placeholder="Input neural prompt..." type="text" x-model="newTaskTitle" x-ref="taskInput"/>
+<div class="flex items-center gap-2 pr-4 pl-4 sm:pl-0">
+<span class="material-symbols-outlined text-on-surface-variant text-sm">schedule</span>
+<input class="w-24 bg-surface-variant/50 border-none rounded-xl px-3 py-2 text-[11px] font-black focus:ring-0 text-on-surface" type="time" x-model="newTaskTime"/>
+<button @click="addTask()" class="bg-primary text-white p-2.5 rounded-xl shadow-lg hover:bg-accent-blue hover:text-background transition-all active:scale-95">
+<span class="material-symbols-outlined">send</span>
+</button>
+</div>
+</div>
+<div class="px-6 py-2 border-t border-white/5 flex items-center justify-between">
+<template x-if="predictCategory()">
+<div class="flex items-center gap-2">
+<span class="text-[9px] font-black uppercase tracking-widest text-primary bg-primary/5 px-2 py-0.5 rounded border border-primary/10 flex items-center gap-1.5 animate-pulse">
+<span class="material-symbols-outlined !text-[12px]">auto_awesome</span>
+                                        Auto-Class: <span x-text="predictCategory()"></span>
+</span>
+</div>
+</template>
+<button @click="isCreating = false" class="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-auto">Cancel</button>
+</div>
+</div>
+<div @click="isCreating = true; setTimeout(() =&gt; $refs.taskInput.focus(), 100)" class="relative py-14 flex flex-col items-center justify-center rounded-3xl border border-dashed border-white/10 hover:border-primary/40 hover:bg-primary/5 transition-all cursor-pointer group" x-show="!isCreating">
+<div class="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center text-on-surface-variant group-hover:text-primary group-hover:bg-primary/10 transition-all duration-500">
+<span class="material-symbols-outlined !text-3xl">add</span>
+</div>
+<p class="mt-4 text-[10px] font-black text-on-surface-variant uppercase tracking-[0.2em] group-hover:text-on-surface transition-colors">Initialize Smart Prompt</p>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- Bottom Nav Bar (Based on BottomNavBar Component) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 bg-[#131b2e]/80 backdrop-blur-2xl rounded-t-3xl border-t border-[#464554]/10 shadow-[0_-12px_40px_rgba(189,194,255,0.08)] flex justify-around items-center px-4 pb-8 pt-4 md:hidden">
+<div :class="view === 'tasks' ? 'bg-[#6f00be]/20 text-[#bdc2ff] rounded-xl px-5 py-2' : 'text-[#c7c4d7]/60'" @click="view = 'tasks'" class="flex flex-col items-center justify-center transition-all duration-200 active:scale-90">
+<span :style="view === 'tasks' ? 'font-variation-settings: \'FILL\' 1' : ''" class="material-symbols-outlined !text-2xl">grid_view</span>
+<span class="text-[10px] font-bold uppercase tracking-wider mt-0.5" x-show="view === 'tasks'">Core</span>
+</div>
+<div :class="view === 'focus' ? 'bg-[#6f00be]/20 text-[#bdc2ff] rounded-xl px-5 py-2' : 'text-[#c7c4d7]/60'" @click="view = 'focus'" class="flex flex-col items-center justify-center transition-all duration-200 active:scale-90">
+<span :style="view === 'focus' ? 'font-variation-settings: \'FILL\' 1' : ''" class="material-symbols-outlined !text-2xl">filter_center_focus</span>
+</div>
+<div :class="view === 'analytics' ? 'bg-[#6f00be]/20 text-[#bdc2ff] rounded-xl px-5 py-2' : 'text-[#c7c4d7]/60'" @click="view = 'analytics'" class="flex flex-col items-center justify-center transition-all duration-200 active:scale-90">
+<span :style="view === 'analytics' ? 'font-variation-settings: \'FILL\' 1' : ''" class="material-symbols-outlined !text-2xl">analytics</span>
+</div>
+<div :class="view === 'profile' ? 'bg-[#6f00be]/20 text-[#bdc2ff] rounded-xl px-5 py-2' : 'text-[#c7c4d7]/60'" @click="view = 'profile'" class="flex flex-col items-center justify-center transition-all duration-200 active:scale-90">
+<span :style="view === 'profile' ? 'font-variation-settings: \'FILL\' 1' : ''" class="material-symbols-outlined !text-2xl">person</span>
+</div>
+</nav>
+<!-- Desktop FAB -->
+<div class="fixed bottom-10 right-10 hidden md:block">
+<button @click="isCreating = true; setTimeout(() =&gt; $refs.taskInput.focus(), 100)" class="w-16 h-16 rounded-2xl bg-primary text-white shadow-2xl shadow-primary/40 flex items-center justify-center group active:scale-95 transition-all overflow-hidden border border-white/20">
+<span class="material-symbols-outlined !text-3xl relative z-10 transition-transform group-hover:rotate-90">add</span>
+</button>
+</div>
+<!-- Notifications -->
+<div class="fixed bottom-28 sm:bottom-10 left-1/2 -translate-x-1/2 sm:translate-x-0 sm:left-auto sm:right-10 z-[100] space-y-3 pointer-events-none w-[90%] sm:w-80">
+<template :key="n.id" x-for="n in notifications">
+<div class="pointer-events-auto glass-panel px-5 py-4 rounded-2xl shadow-2xl flex items-center gap-4 animate-in" x-transition:leave="transition ease-in duration-200" x-transition:leave-end="opacity-0 translate-y-8" x-transition:leave-start="opacity-100 translate-y-0">
+<div :class="n.type === 'success' ? 'bg-primary' : 'bg-tertiary'" class="w-2 h-2 rounded-full shrink-0 shadow-[0_0_8px_rgba(99,102,241,0.5)]"></div>
+<p class="text-[10px] font-black uppercase tracking-widest text-on-surface" x-text="n.msg"></p>
+</div>
+</template>
+</div>
+<script>
+    function reminderApp() {
+        return {
+            view: 'tasks',
+            searchQuery: '',
+            isCreating: false,
+            newTaskTitle: '',
+            newTaskTime: '09:00',
+            efficiencyScore: 88,
+            loadingAI: false,
+            notifications: [],
+            tasks: [
+                { id: 1, title: 'Finalize Design Tokens', category: 'Work', time: '2:00 PM', aiNote: 'High Focus Potential', glowClass: 'glow-work' },
+                { id: 2, title: 'Afternoon Jog', category: 'Health', time: '5:30 PM', aiNote: 'UV Index Optimized', glowClass: 'glow-health' },
+                { id: 3, title: 'Deep Work: Neural Net', category: 'Study', time: '8:00 PM', aiNote: 'Flow Auto-Enabled', glowClass: 'glow-study' }
+            ],
+            suggestions: [
+                { title: 'System Hydration', desc: "2 hours since log. Resource low.", icon: 'water_drop', iconBg: 'bg-blue-500/10 text-blue-400', borderClass: 'border-white/5' },
+                { title: 'Neural Reset', desc: 'Focus peak detected. 5m break.', icon: 'self_improvement', iconBg: 'bg-primary/10 text-primary', borderClass: 'border-white/5' }
+            ],
+            
+            notify(msg, type = 'success') {
+                const id = Date.now();
+                this.notifications.push({ id, msg, type });
+                setTimeout(() => this.notifications = this.notifications.filter(n => n.id !== id), 3000);
+            },
+
+            simulateAI() {
+                this.loadingAI = true;
+                setTimeout(() => this.loadingAI = false, 1200);
+            },
+
+            get filteredTasks() {
+                if (!this.searchQuery) return this.tasks;
+                return this.tasks.filter(t => t.title.toLowerCase().includes(this.searchQuery.toLowerCase()) || t.category.toLowerCase().includes(this.searchQuery.toLowerCase()));
+            },
+
+            predictCategory() {
+                const t = this.newTaskTitle.toLowerCase();
+                if (t.includes('run') || t.includes('jog') || t.includes('water') || t.includes('gym') || t.includes('eat') || t.includes('health')) return 'Health';
+                if (t.includes('study') || t.includes('read') || t.includes('course') || t.includes('learn')) return 'Study';
+                if (t.includes('work') || t.includes('email') || t.includes('meeting') || t.includes('design') || t.includes('code')) return 'Work';
+                return null;
+            },
+
+            addTask() {
+                if (!this.newTaskTitle.trim()) return;
+                this.simulateAI();
+                const cat = this.predictCategory() || 'System';
+                const glowMap = { 'Work': 'glow-work', 'Health': 'glow-health', 'Study': 'glow-study', 'System': 'glow-work' };
+                
+                this.tasks.push({
+                    id: Date.now(),
+                    title: this.newTaskTitle,
+                    category: cat,
+                    time: this.newTaskTime,
+                    aiNote: 'AI Contextualized',
+                    glowClass: glowMap[cat] || 'glow-work'
+                });
+                
+                this.notify(`Pipeline Updated`);
+                this.newTaskTitle = '';
+                this.isCreating = false;
+                this.updateStats();
+            },
+
+            completeTask(index) {
+                this.tasks.splice(index, 1);
+                this.notify(`Record Archived`, 'info');
+                this.updateStats();
+                this.simulateAI();
+            },
+
+            acceptSuggestion(index) {
+                const sug = this.suggestions[index];
+                this.tasks.push({
+                    id: Date.now(),
+                    title: sug.title,
+                    category: 'Health',
+                    time: 'ASAP',
+                    aiNote: 'Heuristic Prompt',
+                    glowClass: 'glow-health'
+                });
+                this.suggestions.splice(index, 1);
+                this.notify(`Habit Logged`);
+                this.updateStats();
+                this.simulateAI();
+            },
+
+            updateStats() {
+                this.efficiencyScore = Math.min(99, Math.max(60, 85 + (this.tasks.length * 1) - (this.suggestions.length * 3)));
+            },
+
+            getCategoryClasses(cat) {
+                if (cat === 'Work') return 'bg-primary/10 text-primary border border-primary/20';
+                if (cat === 'Health') return 'bg-tertiary/10 text-tertiary border border-tertiary/20';
+                if (cat === 'Study') return 'bg-secondary/10 text-secondary border border-secondary/20';
+                return 'bg-white/5 text-on-surface-variant border border-white/10';
+            },
+
+            getCategoryIconBg(cat) {
+                if (cat === 'Work') return 'bg-primary/10 text-primary';
+                if (cat === 'Health') return 'bg-tertiary/10 text-tertiary';
+                if (cat === 'Study') return 'bg-secondary/10 text-secondary';
+                return 'bg-white/5 text-on-surface-variant';
+            },
+
+            getCategoryIcon(cat) {
+                if (cat === 'Work') return 'deployed_code';
+                if (cat === 'Health') return 'ecg_heart';
+                if (cat === 'Study') return 'local_library';
+                return 'token';
+            }
+        }
+    }
+</script>
+</body></html>
