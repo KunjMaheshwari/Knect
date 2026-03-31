@@ -135,3 +135,51 @@ test.describe("production reminder dashboard", () => {
     expect(restoredData.length).toBeGreaterThan(0);
   });
 });
+
+
+
+
+
+
+
+
+public void selectStartDate(WebDriver driver, String dateValue) {
+    try {
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+
+        // Locate input field
+        WebElement dateInput = wait.until(ExpectedConditions.presenceOfElementLocated(
+                By.cssSelector("#startDate-field input")));
+
+        JavascriptExecutor js = (JavascriptExecutor) driver;
+
+        // STEP 1: Try to open calendar using showPicker (modern browsers)
+        js.executeScript("if(arguments[0].showPicker){arguments[0].showPicker();}", dateInput);
+
+        // Small wait (UI stabilization)
+        Thread.sleep(500);
+
+        // STEP 2: Set value using JS (bypass UI restriction)
+        js.executeScript("arguments[0].value = arguments[1];", dateInput, dateValue);
+
+        // STEP 3: Trigger events (VERY IMPORTANT for React/Angular apps)
+        js.executeScript(
+                "arguments[0].dispatchEvent(new Event('input', { bubbles: true }));" +
+                "arguments[0].dispatchEvent(new Event('change', { bubbles: true }));",
+                dateInput
+        );
+
+        // STEP 4: Verify value is set
+        String actualValue = dateInput.getAttribute("value");
+
+        if (!actualValue.equals(dateValue)) {
+            throw new RuntimeException("Date not set correctly. Expected: "
+                    + dateValue + " but got: " + actualValue);
+        }
+
+        System.out.println("✅ Successfully selected date: " + actualValue);
+
+    } catch (Exception e) {
+        throw new RuntimeException("❌ Failed to select date: " + e.getMessage());
+    }
+}
