@@ -34,3 +34,26 @@ module.exports = defineConfig({
     timeout: 120_000,
   },
 });
+
+
+
+
+
+
+
+
+int width = startDateField.getSize().getWidth();
+            int height = startDateField.getSize().getHeight();
+
+            // Step 3: Calculate offset (move to right side where icon exists)
+            int xOffset = (width / 2) - 5;   // move near right edge
+            int yOffset = 0;                 // center vertically
+
+            // Step 4: Perform click using Actions
+            Actions actions = new Actions(driver);
+            actions.moveToElement(startDateField, xOffset, yOffset)
+                   .click()
+                   .build()
+                   .perform();
+
+            System.out.println("Clicked on calendar icon using offset");
